@@ -3,7 +3,7 @@ Debian/GNU Linux (on the SATA drive).
 
 
 Serial port
-===========
+-----------
 
 The serial port is located next to the USB port (see the picture). You need to
 do some soldering and use a serial cable such as the Nokia CA-42 or DKU-5 data
@@ -13,20 +13,20 @@ labeled "JP1".
 
 
 Temperature sensor & fan
-========================
+------------------------
 
 You can use the fan-daemon.py script to automatically control the speed of the
 fan depending on the temperature of the board. 
 
 
 Links
-=====
+-----
 
 - [http://jamie.lentin.co.uk/devices/dlink-dns325](http://jamie.lentin.co.uk/devices/dlink-dns325)
 
 
 Thanks
-======
+------
 
-- [Roberto Paleari](http://roberto.greyhats.it) (for extracting the thermal table from the binary)
+- [Roberto Paleari](http://roberto.greyhats.it) (for the thermal table)
 - [Jamie Lentin](http://jamie.lentin.co.uk/)
