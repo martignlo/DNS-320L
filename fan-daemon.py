@@ -26,6 +26,16 @@ LOW_TEMP = 45
 HIGH_TEMP = 50
 HYSTERESIS = 2
 
+POWER_LED_CMD = [
+   # Off
+   "\xfa\x03\x06\x00\x00\x01\xfb",
+   # On
+   "\xfa\x03\x06\x01\x00\x01\xfb",
+   # Blink
+   "\xfa\x03\x06\x02\x00\x01\xfb",
+]
+DEVICE_READY_CMD = "\xfa\x03\x01\x00\x00\x00\xfb"
+
 THERMAL_TABLE = (0x74, 0x73, 0x72, 0x71, 0x70, 0x6F, 0x6E, 0x6D, 0x6C, 0x6B,
                  0x6A, 0x69, 0x68, 0x67, 0x66, 0x65, 0x64, 0x63, 0x62, 0x61,
                  0x60, 0x5F, 0x5E, 0x5D, 0x5C, 0x5B, 0x5A, 0x59, 0x58, 0x57,
@@ -45,7 +55,6 @@ THERMAL_TABLE = (0x74, 0x73, 0x72, 0x71, 0x70, 0x6F, 0x6E, 0x6D, 0x6C, 0x6B,
                  0x10, 0xF, 0xF, 0xE, 0xE, 0xE, 0xD, 0xD, 0xC, 0xC, 0xC, 0xB,
                  0xB, 0xA, 0xA, 9, 9, 9, 8, 8, 7, 7, 7, 6, 6, 5, 5, 4, 4, 4, 3,
                  3, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0)
-
 READ_TEMP_CMD = "\xfa\x03\x08\x00\x00\x00\xfb"
 FAN_SPEED_CMDS = [
    "\xfa\x02\x00\x00\x00\x00\xfb",
@@ -82,6 +91,13 @@ def ReadPktFromSerial(port, timeout=5):
    return None
 
 
+def SetPowerLed(port, status):
+   assert status >= 0 and status < len(POWER_LED_CMD)
+   WritePktToSerial(port, POWER_LED_CMD[status])
+   ReadPktFromSerial(port)
+   return status
+
+
 def ReadTemp(port):
    WritePktToSerial(port, READ_TEMP_CMD)
    data, _ = ReadPktFromSerial(port), ReadPktFromSerial(port)
@@ -101,10 +117,13 @@ def SetFanSpeed(port, speed):
 
 
 def AutoFanControl(port):
-   speed = SetFanSpeed(port, 0)
+   speed = -1
 
    while True:
       try:
+         if speed == -1:
+           speed = SetFanSpeed(port, 0)
+
          temp = ReadTemp(port)
          Debug("Temp: %d Speed: %d", temp, speed)
 
@@ -125,6 +144,7 @@ def AutoFanControl(port):
                speed = SetFanSpeed(port, 2)
 
       except Exception as e:
+         speed = -1
          print >> sys.stderr, e
 
       time.sleep(15)
@@ -132,7 +152,12 @@ def AutoFanControl(port):
 
 def main():
    port = InitSerial()
-   AutoFanControl(port)
+   try:
+      SetPowerLed(port, 1)
+      AutoFanControl(port)
+   finally:
+      SetFanSpeed(port, 0)
+      SetPowerLed(port, 2)
 
 
 if __name__ == "__main__":
